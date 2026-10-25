@@ -1,5 +1,6 @@
 """Test attribute selectors."""
 from .. import util
+import soupsieve as sv
 
 
 class TestAttribute(util.TestCase):
@@ -50,3 +51,31 @@ class TestAttribute(util.TestCase):
             ["div", "0", "1", "2", "3", "pre", "4", "6"],
             flags=util.HTML5
         )
+
+    def test_bad_attribute_unclused(self):
+        """Test bad attribute fails for syntax error, not timeout error."""
+
+        self.assert_raises_no_timeout('[a="' + ('x' * 300), sv.SelectorSyntaxError)
+
+    def test_bad_attribute_unclosed_single_quote(self):
+        """Test bad attribute with unclosed single quote fails for syntax error, not timeout error."""
+
+        self.assert_raises_no_timeout("[a='" + ('x' * 300), sv.SelectorSyntaxError)
+
+    def test_bad_attribute_unclosed_escaped_newlines(self):
+        """Test bad attribute with unclosed quote and escaped newlines fails for syntax error, not timeout error."""
+
+        self.assert_raises_no_timeout('[a="' + ('\\\f' * 300), sv.SelectorSyntaxError)
+        self.assert_raises_no_timeout("[a='" + ('\\\r' * 300), sv.SelectorSyntaxError)
+
+    def test_attribute_quoted_escaped_newlines(self):
+        """Test attribute values with escaped new lines (CRLF, CR, and form feed) in quoted strings."""
+
+        markup = """
+        <div id="1" data-a="ab"></div>
+        <div id="2" data-a="abc"></div>
+        """
+
+        self.assert_selector(markup, '[data-a="a\\\r\nb"]', ["1"], flags=util.HTML)
+        self.assert_selector(markup, '[data-a="a\\\fb"]', ["1"], flags=util.HTML)
+        self.assert_selector(markup, "[data-a='a\\\rb']", ["1"], flags=util.HTML)

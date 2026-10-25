@@ -67,6 +67,13 @@ class TestSoupContains(util.TestCase):
             flags=util.HTML
         )
 
+    def test_contains_unclosed_quote(self):
+        """Test contains with an unclosed quote fails for syntax error, not timeout error."""
+
+        self.assert_raises_no_timeout('body :-soup-contains("' + ('x' * 300), sv.SelectorSyntaxError)
+        self.assert_raises_no_timeout("body :-soup-contains('a', '" + ('x' * 300), sv.SelectorSyntaxError)
+        self.assert_raises_no_timeout('body :-soup-contains("' + ('\\\f' * 300), sv.SelectorSyntaxError)
+
     def test_contains_list(self):
         """Test contains list."""
 
